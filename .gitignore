@@ -1,0 +1,8 @@
+# Folder
+venv
+content
+.idea
+
+# Files
+test.json
+gsm8k.jsonl
