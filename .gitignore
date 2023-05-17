@@ -11,3 +11,7 @@ gsm8k.jsonl
 # logs
 *.out
 *.err
+logs/
+
+*.pyc
+*DS_Store*
