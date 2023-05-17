@@ -3,6 +3,8 @@ venv
 content
 .idea
 dataset
+outputs
+checkpoints
 
 # Files
 test.json
@@ -15,3 +17,5 @@ logs/
 
 *.pyc
 *DS_Store*
+
+
