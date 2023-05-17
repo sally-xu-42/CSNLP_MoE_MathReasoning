@@ -2,7 +2,12 @@
 venv
 content
 .idea
+dataset
 
 # Files
 test.json
 gsm8k.jsonl
+
+# logs
+*.out
+*.err
