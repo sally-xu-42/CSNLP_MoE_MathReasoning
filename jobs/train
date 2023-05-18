@@ -11,4 +11,4 @@
 
 source /cluster/scratch/yaqqin/venvs/csnlp_venv/bin/activate
 module load gcc/8.2.0 python_gpu/3.8.5 eth_proxy
-python train.py --num_steps 4
+python train.py

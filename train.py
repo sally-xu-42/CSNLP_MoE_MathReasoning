@@ -29,7 +29,7 @@ def main(args: DictConfig):
     ckpt_path += args.model
     ckpt_path += f'/seed{args.seed}'
     ckpt_path += f'/epochs{args.num_epochs}'
-    ckpt_path += f'steps_n_{args.num_steps}' if args.num_steps else ''
+    ckpt_path += f'/steps_n_{args.num_steps}' if args.num_steps else ''
     args_to_log['ckpt_path'] = ckpt_path
     print("\n" + json.dumps(str(args_to_log), indent=4) + "\n")
     wandb.config.update(args_to_log)
@@ -58,10 +58,10 @@ def main(args: DictConfig):
         tokenizer.add_special_tokens(SPECIAL_TOKENS)
         print("Special tokens added")
 
-    train_dset = GSMDataset(tokenizer, train_examples, SPECIAL_TOKENS)
-    valid_dset = GSMDataset(tokenizer, val_examples, SPECIAL_TOKENS)
+    train_dset = GSMDataset(tokenizer, train_examples, SPECIAL_TOKENS, 768)
+    valid_dset = GSMDataset(tokenizer, val_examples, SPECIAL_TOKENS, 768)
 
-    print("Load data with {} steps successfully!".format(args.num_steps))
+    print("Load data with {} steps successfully!".format(args.num_steps if args.num_steps else "all"))
     print("Train data set size: {}".format(len(train_dset)))
     print("Validation data set size: {}".format(len(valid_dset)))
     print('=====================')
@@ -96,8 +96,9 @@ def main(args: DictConfig):
         for batch in train_loader:
             model.train()
             optim.zero_grad()
-            batch = {k: v.to(device) for k, v in batch.items()}
-            outputs = model(**batch, labels=batch["input_ids"])
+            # batch = {k: v.to(device) for k, v in batch.items()}
+            # outputs = model(**batch, labels=batch["input_ids"])
+            outputs = model(**batch)
             loss = outputs[0]
             loss.backward()
             optim.step()
@@ -111,8 +112,9 @@ def main(args: DictConfig):
             model.eval()
             with torch.no_grad():
                 for batch in valid_loader:
-                    batch = {k: v.to(device) for k, v in batch.items()}
-                    outputs = model(**batch, labels=batch["input_ids"])
+                    # batch = {k: v.to(device) for k, v in batch.items()}
+                    # outputs = model(**batch, labels=batch["input_ids"])
+                    outputs = model(**batch)
                     loss = outputs[0]
                     batch_count+=1
                     total_loss +=loss.item()

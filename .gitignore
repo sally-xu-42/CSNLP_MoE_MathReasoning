@@ -5,6 +5,7 @@ content
 dataset
 outputs
 checkpoints
+jobs
 
 # Files
 test.json
@@ -17,5 +18,6 @@ logs/
 
 *.pyc
 *DS_Store*
+*.yaml
 
 

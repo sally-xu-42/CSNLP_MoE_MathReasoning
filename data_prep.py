@@ -111,7 +111,7 @@ def split_data(data, split_ratio=0.9):
 
     return data[:train_size], data[train_size:]
 
-class GSMDataset(Dataset):
+class GSMDatasetTA(Dataset):
     def __init__(self, tokenizer, examples, special_tokens, loss_on_prefix=True):
         """Construct the input as <bos> context + main_q + all_subq <sep> all_suba <eos>
         """
@@ -149,6 +149,40 @@ class GSMDataset(Dataset):
         tokens = torch.tensor(tokens)
         mask = torch.tensor(mask)
         return dict(input_ids=tokens, attention_mask=mask)
+
+class GSMDataset(Dataset):
+    def __init__(self, tokenizer, examples, special_tokens, max_len):
+        """Construct the input as <bos> context + main_q + all_subq <sep> all_suba <eos>
+        """
+        context, qns, ans = [], [], []
+        for ex in examples:
+            context.append(ex["context"])
+            qns.append(ex["subquestions"])
+            ans.append(ex["subanswers"])
+        self.context = context
+        self.qns = qns
+        self.ans = ans
+        self.tokenizer = tokenizer
+        self.special_tokens = special_tokens
+        self.max_len = max_len
+
+    def __len__(self):
+        return len(self.ans)
+
+    def __getitem__(self, i):
+        input = self.special_tokens['bos_token'] + self.context[i] + \
+                self.special_tokens['sep_token'] + self.qns[i] + \
+                self.ans[i] + self.special_tokens['eos_token']
+        
+        encodings_dict_input = self.tokenizer(input,
+                                   truncation=True,
+                                   max_length=self.max_len,
+                                   padding="max_length")
+        input_ids = torch.tensor(encodings_dict_input['input_ids'])
+        attention_mask = torch.tensor(encodings_dict_input['attention_mask'])
+        return {'labels': input_ids,
+                'input_ids': input_ids,
+                'attention_mask': attention_mask}
 
 
 if __name__ == '__main__':
