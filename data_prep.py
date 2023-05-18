@@ -151,7 +151,7 @@ class GSMDatasetTA(Dataset):
         return dict(input_ids=tokens, attention_mask=mask)
 
 class GSMDataset(Dataset):
-    def __init__(self, tokenizer, examples, special_tokens, max_len):
+    def __init__(self, tokenizer, examples, special_tokens, max_len, device):
         """Construct the input as <bos> context + main_q + all_subq <sep> all_suba <eos>
         """
         context, qns, ans = [], [], []
@@ -165,6 +165,7 @@ class GSMDataset(Dataset):
         self.tokenizer = tokenizer
         self.special_tokens = special_tokens
         self.max_len = max_len
+        self.device = device
 
     def __len__(self):
         return len(self.ans)
@@ -180,9 +181,9 @@ class GSMDataset(Dataset):
                                    padding="max_length")
         input_ids = torch.tensor(encodings_dict_input['input_ids'])
         attention_mask = torch.tensor(encodings_dict_input['attention_mask'])
-        return {'labels': input_ids,
-                'input_ids': input_ids,
-                'attention_mask': attention_mask}
+        return {'labels': input_ids.to(self.device),
+                'input_ids': input_ids.to(self.device),
+                'attention_mask': attention_mask.to(self.device)}
 
 
 if __name__ == '__main__':

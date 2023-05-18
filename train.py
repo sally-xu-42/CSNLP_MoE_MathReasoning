@@ -57,16 +57,18 @@ def main(args: DictConfig):
     if SPECIAL_TOKENS:
         tokenizer.add_special_tokens(SPECIAL_TOKENS)
         print("Special tokens added")
+    
+    device = torch.device(args.device)
 
-    train_dset = GSMDataset(tokenizer, train_examples, SPECIAL_TOKENS, 768)
-    valid_dset = GSMDataset(tokenizer, val_examples, SPECIAL_TOKENS, 768)
+    train_dset = GSMDataset(tokenizer, train_examples, SPECIAL_TOKENS, 768, device)
+    valid_dset = GSMDataset(tokenizer, val_examples, SPECIAL_TOKENS, 768, device)
 
     print("Load data with {} steps successfully!".format(args.num_steps if args.num_steps else "all"))
     print("Train data set size: {}".format(len(train_dset)))
     print("Validation data set size: {}".format(len(valid_dset)))
     print('=====================')
 
-    device = torch.device(args.device)
+    
 
     # load gpt2 pretrained models
     model = GPT2LMHeadModel.from_pretrained(args.model)
