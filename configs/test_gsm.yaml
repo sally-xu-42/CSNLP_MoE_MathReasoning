@@ -1,0 +1,11 @@
+model: "gpt2" # option: ["gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl"]
+num_steps: 0 # option: [2-8, None], if None, than run the baseline
+wandb_mode: "online" # option: ["offline", "disabled"]
+dataset_path: "dataset"
+device: "cpu" # or "cpu"
+batch_size: 32
+learning_rate: 5e-4
+validation_epochs: 5
+checkpoint_path: "/home/zhiyi/Desktop/Projects/CS4NLP/cs4nlp/output/gpt2_2_step"
+test_data_path: "/home/zhiyi/Desktop/Projects/CS4NLP/cs4nlp/dataset/train_2_steps.json"
+transformers_cache_dir: None
