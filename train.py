@@ -93,21 +93,24 @@ def main(args: DictConfig):
         num_training_steps=num_training_steps,
     )
 
+    batch_update = args.batch_update
+
     pbar = tqdm(range(num_training_steps))
     for epoch in range(args.num_epochs):
-        for batch in train_loader:
+        for i, batch in enumerate(train_loader):
             model.train()
-            optim.zero_grad()
             # batch = {k: v.to(device) for k, v in batch.items()}
             # outputs = model(**batch, labels=batch["input_ids"])
             outputs = model(**batch)
             loss = outputs[0]
             loss.backward()
-            optim.step()
-            lr_scheduler.step()
-            pbar.update(1)
-            pbar.set_description(f"train_loss: {loss.item():.5f}")
-            wandb.log({"Train_loss": loss.item()})
+            if (i+1) % batch_update == 0:
+                optim.step()
+                lr_scheduler.step()
+                pbar.update(1)
+                pbar.set_description(f"train_loss: {loss.item():.5f}")
+                wandb.log({"Train_loss": loss.item()})
+                optim.zero_grad()
 
         if epoch % int(args.validation_epochs) == 0:
             total_loss, batch_count = 0, 0
