@@ -1,15 +1,20 @@
 model: "gpt2" # option: ["gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl"]
-num_steps: 8 # option: [2-8, None], if None, than run the baseline
+num_steps: 4 # option: [2-8, None], if None, than run the baseline
 wandb_mode: "online" # option: ["offline", "disabled"]
 seed: 2020
-num_epochs: 1
+num_epochs: 50
 dataset_path: "dataset"
-device: "cpu" # or "cpu"
-batch_size: 2
+device: "cuda" # or "cpu"
+batch_size: 3
 learning_rate: 5e-4
 validation_epochs: 1
 checkpoint_dir: "checkpoints/"
-repo_dir: "/Users/qyq/Documents/GitHub/cs4nlp"
+repo_dir: "/cluster/scratch/yaqqin/MixtureOfExpertMathReasoning"
+num_warmup_steps: 100
 batch_update: 10 # accumulate certain batches for gradient update
 # "/cluster/scratch/yaqqin/MixtureOfExpertMathReasoning"
 # transformers_cache_dir: None
+
+# for early stopping
+patience: 7
+delta: 0

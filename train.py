@@ -11,6 +11,7 @@ import wandb
 from tqdm.auto import tqdm
 import hydra
 from omegaconf import DictConfig, OmegaConf
+from utils import EarlyStopping
 
 
 @hydra.main(config_path='configs', config_name='train')
@@ -34,6 +35,7 @@ def main(args: DictConfig):
     print("\n" + json.dumps(str(args_to_log), indent=4) + "\n")
     wandb.config.update(args_to_log)
     del args_to_log
+    os.makedirs(ckpt_path, exist_ok=True)
 
     # load dataset
     train_dataset_path = args.repo_dir + f'/{args.dataset_path}'
@@ -84,16 +86,18 @@ def main(args: DictConfig):
     valid_loader = DataLoader(valid_dset, batch_size=args.batch_size, shuffle=True)
     optim = AdamW(model.parameters(), lr=args.learning_rate)
 
-    num_training_steps = args.num_epochs * len(train_loader)
+    batch_update = args.batch_update
+
+    num_training_steps = (args.num_epochs * len(train_loader)) // batch_update
 
     lr_scheduler = get_scheduler(
         "linear",
         optimizer=optim,
-        num_warmup_steps=0,
+        num_warmup_steps=args.num_warmup_steps,
         num_training_steps=num_training_steps,
     )
 
-    batch_update = args.batch_update
+    early_stopping = EarlyStopping(ckpt_path = ckpt_path, patience=args.patience, verbose=False, delta=args.delta)
 
     pbar = tqdm(range(num_training_steps))
     for epoch in range(args.num_epochs):
@@ -123,10 +127,14 @@ def main(args: DictConfig):
                     loss = outputs[0]
                     batch_count+=1
                     total_loss +=loss.item()
-            wandb.log({"Valid_loss": total_loss/batch_count, "Epochs": epoch})
-
-    os.makedirs(ckpt_path, exist_ok=True)
-    model.save_pretrained(ckpt_path)
+            valid_loss = total_loss/batch_count
+            wandb.log({"Valid_loss": valid_loss, "Epochs": epoch})
+            
+            # for early stop
+            early_stopping(valid_loss, model)
+            if early_stopping.early_stop:
+                print("Early stopping")
+                break
 
 if __name__ == "__main__":
     main()
