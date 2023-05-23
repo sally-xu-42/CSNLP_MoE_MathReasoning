@@ -51,7 +51,7 @@ def sample(model, qn, tokenizer, device, sample_len):
         with th.no_grad():
             toks = tokenizer([qn], padding=False, return_tensors="pt").to(device)
             orig_len = toks["input_ids"].shape[1]
-            pad_token_id = tokenizer.encode(SPECIAL_TOKENS["eos_token"])[0]
+            pad_token_id = tokenizer.encode(SPECIAL_TOKENS["pad_token"])[0]
             out = model.generate(
                 **toks, max_length=orig_len + 1, pad_token_id=pad_token_id
             )
@@ -63,7 +63,7 @@ def sample(model, qn, tokenizer, device, sample_len):
                     text = text + str(int(answer)) + ">>"
 
             qn = text
-            if out[0][-1] == tokenizer.encode(SPECIAL_TOKENS["eos_token"])[0]:
+            if out[0][-1] == tokenizer.encode(SPECIAL_TOKENS["pad_token"])[0]:
                 print(qn)
                 break
     return qn, answer

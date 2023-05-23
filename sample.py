@@ -1,5 +1,7 @@
 import os
 import torch as th
+import wandb
+
 from calculator import sample
 import json
 from tqdm.auto import tqdm
@@ -58,20 +60,20 @@ def write_to_csv(model_ckpt_path, in_seq, out_seq, predicted_out, accuracy):
 @hydra.main(config_path='configs', config_name='test_gsm')
 def main(args: DictConfig):
     # initialize logging
-    # log_directory = os.getcwd()
-    # print(f'log_directory: {log_directory}')
-    # wandb_name = f'{args.model}'
-    # wandb_name += f'standard-training' if 'step' not in args.checkpoint_path else ''
-    # wandb_name += f' -d gsm'
-    # wandb_name += f' -num_steps {args.num_steps}' if args.num_steps else ''
-    # #wandb_name += f' {"subq" if args.subquestions else "no-subq"}'
-    # wandb.init(project='distill-MWP-eval', name=wandb_name, notes='', dir=log_directory,
-    #            settings=wandb.Settings(start_method='fork'), mode=args.wandb_mode)
-    # args_to_log = dict(args)
-    # args_to_log['out_dir'] = log_directory
-    # print("\n" + json.dumps(str(args_to_log), indent=4) + "\n")
-    # wandb.config.update(args_to_log)
-    # del args_to_log
+    log_directory = os.getcwd()
+    print(f'log_directory: {log_directory}')
+    wandb_name = f'{args.model}'
+    wandb_name += f'standard-training' if 'step' not in args.checkpoint_path else ''
+    wandb_name += f' -d gsm'
+    wandb_name += f' -num_steps {args.num_steps}' if args.num_steps else ''
+    wandb_name += f' {"subq" if args.subquestions else "no-subq"}'
+    wandb.init(project='MOE-MWP', name=wandb_name, notes='', dir=log_directory,
+               settings=wandb.Settings(start_method='fork'), mode=args.wandb_mode)
+    args_to_log = dict(args)
+    args_to_log['out_dir'] = log_directory
+    print("\n" + json.dumps(str(args_to_log), indent=4) + "\n")
+    wandb.config.update(args_to_log)
+    del args_to_log
 
     device = th.device(args.device)
     model_ckpt_path = args.checkpoint_path

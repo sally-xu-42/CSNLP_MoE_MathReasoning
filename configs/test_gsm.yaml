@@ -1,7 +1,9 @@
 model: "gpt2" # option: ["gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl"]
-wandb_mode: "online" # option: ["offline", "disabled"]
+wandb_mode: "online"
+num_steps: 6 # option: ["offline", "disabled"]
 dataset_path: "dataset"
+subquestions: 0
 device: "cpu" # or "cpu"
-checkpoint_path: "/home/zhiyi/Desktop/Projects/CS4NLP/MixtureOfExpertMathReasoning/num_step_6/"
-test_data_path: "/home/zhiyi/Desktop/Projects/CS4NLP/MixtureOfExpertMathReasoning/dataset/test_6_steps.json"
+checkpoint_path: "/cluster/scratch/zhiychen/NLP/MixtureOfExpertMathReasoning/num_step_6"
+test_data_path: "/cluster/scratch/zhiychen/NLP/MixtureOfExpertMathReasoning/dataset/test_6_steps.json"
 transformers_cache_dir: None
