@@ -55,7 +55,7 @@ def write_to_csv(model_ckpt_path, in_seq, out_seq, predicted_out, accuracy):
             write.writerow([in_samp, out_samp, pred_samp, acc])
         print(f"File saved at :{model_ckpt_path}")
 
-@hydra.main(config_path='config', config_name='test_gsm')
+@hydra.main(config_path='configs', config_name='test_gsm')
 def main(args: DictConfig):
     # initialize logging
     # log_directory = os.getcwd()
@@ -76,14 +76,16 @@ def main(args: DictConfig):
     device = th.device(args.device)
     model_ckpt_path = args.checkpoint_path
 
-    tokenizer_class = (GPT2Tokenizer if 'gpt2' in args.checkpoint_path or 'neo' in args.checkpoint_path else
-                    AutoTokenizer if 'gpt-j' in args.checkpoint_path else
-                     None)
-    tokenizer = get_tokenier(SPECIAL_TOKENS)
+    tokenizer = GPT2Tokenizer.from_pretrained(args.model)
 
-    model_class = (GPT2LMHeadModel if 'gpt2' in args.checkpoint_path else
-                   GPTNeoForCausalLM if 'gpt-neo' in args.checkpoint_path else
-                   AutoModelForCausalLM if 'gpt-j' in args.checkpoint_path else
+    # add special tokens
+    if SPECIAL_TOKENS:
+        tokenizer.add_special_tokens(SPECIAL_TOKENS)
+        print("Special tokens added")
+
+    model_class = (GPT2LMHeadModel if 'gpt2' == args.model else
+                   GPTNeoForCausalLM if 'gpt-neo' == args.model else
+                   AutoModelForCausalLM if 'gpt-j' == args.model else
                    None)
     model = model_class.from_pretrained(model_ckpt_path)
 
@@ -94,12 +96,7 @@ def main(args: DictConfig):
         all_data = [json.loads(line) for line in fh.readlines() if line]
     input_sequences = []
     out_sequences = []
-    for datum in all_data[0][:100]:
-        if args.num_steps:
-            steps = datum['answer'].split('\n')
-            n_steps = len(steps) - 1
-            if n_steps != args.num_steps:
-                continue
+    for datum in all_data[0]:
         input_sequences.append(datum["context"] + SPECIAL_TOKENS["sep_token"] + datum["subquestions"] + SPECIAL_TOKENS["sep_token"])
         out_sequences.append(datum['subanswers'])
 

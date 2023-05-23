@@ -14,7 +14,8 @@ SPECIAL_TOKENS = {"bos_token": "<|BOS|>",
                   "eos_token": "<|EOS|>",
                   "unk_token": "<|UNK|>",
                   "pad_token": "<|PAD|>",
-                  "sep_token": "<|SEP|>"}
+                  "sep_token": "<|SEP|>"
+                  }
   
 def get_tokenier(special_tokens=None):
     tokenizer = AutoTokenizer.from_pretrained(MODEL) #GPT2Tokenizer
