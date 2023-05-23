@@ -117,7 +117,7 @@ def main(args: DictConfig):
     final_acc = sum(overall_accuracy)/len(overall_accuracy)
 
     print(f"Final Accuracy: {final_acc}")
-    # wandb.run.summary.update({'final_accuracy': final_acc})
+    wandb.run.summary.update({'final_accuracy': final_acc})
 
 
 if __name__ == "__main__":
