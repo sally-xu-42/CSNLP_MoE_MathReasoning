@@ -40,14 +40,15 @@ def data_preprocess(file_path, output_path, sep = False):
 
     print("preprocced data have already written in {}".format(output_path))
 
-def extract_subques_exp(dataset_path, output_path, mode = "train", num_steps=None):
+
+def extract_subques_exp(dataset_path, output_path, mode="train", num_steps=None):
     """ Extract specified num_steps of problems, and write into the json files
     args:
         dataset_path: the path to the dataset
         output_path: the folder to write the processed data
         num_steps: num_steps to specified, default is None (save all the steps respectively)
     """
-    
+
     with open(dataset_path, 'r') as file:
         all_data = json.load(file)
 
@@ -63,11 +64,46 @@ def extract_subques_exp(dataset_path, output_path, mode = "train", num_steps=Non
             if num_steps and step != num_steps:
                 continue
             concat_questions += " " + sub_q
-            concat_ans += " " + sub_a 
-            temp["context"] = v[0] + " " + v[1] # context + main problem
+            concat_ans += " " + sub_a
+            temp["context"] = v[0] + " " + v[1]  # context + main problem
             temp["subquestions"] = concat_questions
             temp["subanswers"] = concat_ans
             examples[step].append(temp)
+
+    for k in examples.keys():
+        output_json_path = output_path + "/{}_{}_steps.json".format(mode, str(k))
+        with open(output_json_path, "w") as outfile:
+            json.dump(examples[k], outfile)
+        print("{} steps: {} data in total".format(k, len(examples[k])))
+
+def extract_subques_exp_test(dataset_path, output_path, mode = "train", num_steps=None):
+    """ Extract specified num_steps of problems, and write into the json files
+    args:
+        dataset_path: the path to the dataset
+        output_path: the folder to write the processed data
+        num_steps: num_steps to specified, default is None (save all the steps respectively)
+    """
+    
+    with open(dataset_path, 'r') as file:
+        all_data = json.load(file)
+
+    examples = defaultdict(list)
+
+    for k, v in all_data.items():
+        if num_steps and len(v[2]) != num_steps:
+            continue
+        concat_ans = ""
+        concat_questions = ""
+        # step = 0
+        for sub_q, sub_a in v[2]:
+            temp = {}
+            # step += 1
+            concat_questions += " " + sub_q
+            concat_ans += " " + sub_a 
+        temp["context"] = v[0] + " " + v[1] # context + main problem
+        temp["subquestions"] = concat_questions
+        temp["subanswers"] = concat_ans
+        examples[len(v[2])].append(temp)
 
     for k in examples.keys():
         output_json_path = output_path + "/{}_{}_steps.json".format(mode, str(k))
@@ -98,6 +134,36 @@ def extract_all_exp(dataset_path, output_path, mode = "train"):
             temp["subquestions"] = concat_questions
             temp["subanswers"] = concat_ans
             examples.append(temp)
+
+    output_json_path = output_path + f"/{mode}_all_steps.json"
+    with open(output_json_path, "w") as outfile:
+        json.dump(examples, outfile)
+    print("{} data in total".format(len(examples)))
+
+
+def extract_all_exp_test(dataset_path, output_path, mode="train"):
+    """ Extract all num_steps of problems, and write into the json files
+    args:
+        dataset_path: the path to the dataset
+        output_path: the folder to write the processed data
+    """
+
+    with open(dataset_path, 'r') as file:
+        all_data = json.load(file)
+
+    examples = []
+
+    for k, v in all_data.items():
+        concat_ans = ""
+        concat_questions = ""
+        for sub_q, sub_a in v[2]:
+            temp = {}
+            concat_questions += " " + sub_q
+            concat_ans += " " + sub_a
+        temp["context"] = v[0] + " " + v[1]  # context + main problem
+        temp["subquestions"] = concat_questions
+        temp["subanswers"] = concat_ans
+        examples.append(temp)
 
     output_json_path = output_path + f"/{mode}_all_steps.json"
     with open(output_json_path, "w") as outfile:
@@ -189,15 +255,15 @@ class GSMDataset(Dataset):
 if __name__ == '__main__':
 
     # get training dataset
-    train_dataset_path = "dataset/train_socratic_processed_sep.json"
-    train_preprocessed_path = "dataset/train_socratic_processed_sep.json"
-    data_preprocess(train_dataset_path, train_preprocessed_path, sep = False)
-    extract_subques_exp(train_preprocessed_path, "dataset", mode = "train", num_steps=None)
-    extract_all_exp(train_preprocessed_path, "dataset", mode = "train")
+    # train_dataset_path = "dataset/train_socratic_processed_sep.json"
+    # train_preprocessed_path = "dataset/train_socratic_processed_sep.json"
+    # data_preprocess(train_dataset_path, train_preprocessed_path, sep = False)
+    # extract_subques_exp(train_preprocessed_path, "dataset", mode = "train", num_steps=None)
+    # extract_all_exp(train_preprocessed_path, "dataset", mode = "train")
 
     # get testing dataset
     test_dataset_path = "dataset/test_socratic.jsonl"
     test_preprocessed_path = "dataset/test_socratic_processed_sep.json"
     data_preprocess(test_dataset_path, test_preprocessed_path, sep = False)
-    extract_subques_exp(test_preprocessed_path, "dataset", mode = "test", num_steps=None)
-    extract_all_exp(test_preprocessed_path, "dataset", mode = "test")
+    extract_subques_exp_test(test_preprocessed_path, "dataset", mode = "test", num_steps=None)
+    extract_all_exp_test(test_preprocessed_path, "dataset", mode = "test")
