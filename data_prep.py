@@ -218,7 +218,9 @@ class GSMDatasetTA(Dataset):
 
 class GSMDataset(Dataset):
     def __init__(self, tokenizer, examples, special_tokens, max_len, device):
-        """Construct the input as <bos> context + main_q + all_subq <sep> all_suba <eos>
+        """Construct the input as dialog style: <bos> context + main_q + <seq> + \
+        subq1 + suba1 + <seq> + subq2 + suba2 + <seq> + ...
+        + <eos> for dialogpt
         """
         context, qns, ans = [], [], []
         for ex in examples:
@@ -240,6 +242,52 @@ class GSMDataset(Dataset):
         input = self.special_tokens['bos_token'] + self.context[i] + \
                 self.special_tokens['sep_token'] + self.qns[i] + \
                 self.ans[i] + self.special_tokens['eos_token']
+        
+        encodings_dict_input = self.tokenizer(input,
+                                   truncation=True,
+                                   max_length=self.max_len,
+                                   padding="max_length")
+        input_ids = torch.tensor(encodings_dict_input['input_ids'])
+        attention_mask = torch.tensor(encodings_dict_input['attention_mask'])
+        return {'labels': input_ids.to(self.device),
+                'input_ids': input_ids.to(self.device),
+                'attention_mask': attention_mask.to(self.device)}
+    
+class GSMDatasetDialog(Dataset):
+    def __init__(self, tokenizer, examples, special_tokens, max_len, device):
+        """Construct the input as <bos> context + main_q + all_subq <sep> all_suba <eos>
+        """
+        context, main_q, qa_pairs = [], [], []
+        for ex in examples:
+            context.append(ex["context"])
+            main_q.append(ex["main-q"])
+            qa_pairs.append(ex["qa-pairs"])
+        self.context = context
+        self.main_q = main_q
+        self.qa_pairs = qa_pairs
+
+        self.tokenizer = tokenizer
+        self.special_tokens = special_tokens
+        self.max_len = max_len
+        self.device = device
+
+    def __len__(self):
+        assert len(self.context) == len(self.main_q)
+        assert len(self.main_q) == len(self.qa_pairs)
+        return len(self.context)
+
+    def __getitem__(self, i):
+        
+        # assert len(questions) == len(answers)
+        input = self.special_tokens['bos_token'] + self.context[i] + \
+            ' ' + self.main_q[i] + self.special_tokens['sep_token'] + ' '
+        
+        for j in range(len(self.qa_pairs[i])):
+            input += (self.qa_pairs[i][j][0] + ' ' + self.qa_pairs[i][j][1])
+            if j != len(self.qa_pairs[i])-1:
+                input += (self.special_tokens['sep_token'] + ' ')
+            else:
+                input += self.special_tokens['eos_token']
         
         encodings_dict_input = self.tokenizer(input,
                                    truncation=True,
