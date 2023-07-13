@@ -1,0 +1,20 @@
+model: "gpt2" # option: ["gpt2", "gpt2-medium", "gpt2-large", "gpt2-xl"]
+num_steps: 1 # option: [2-8, None], if None, than run the baseline
+wandb_mode: "online" # option: ["offline", "disabled"]
+seed: 2020
+num_epochs: 400
+dataset_path: "dataset_dialog"
+device: "cuda" # or "cpu"
+batch_size: 3
+learning_rate: 5e-4
+validation_epochs: 1
+checkpoint_dir: "/cluster/home/daizhang/MixtureOfExpertMathReasoning/checkpoints/"
+repo_dir: "/cluster/home/daizhang/MixtureOfExpertMathReasoning"
+num_warmup_steps: 100
+batch_update: 10 # accumulate certain batches for gradient update
+# "/cluster/scratch/yaqqin/MixtureOfExpertMathReasoning"
+# transformers_cache_dir: None
+
+# for early stopping
+patience: 8
+delta: 0
