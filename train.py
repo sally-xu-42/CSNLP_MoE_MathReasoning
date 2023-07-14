@@ -14,7 +14,7 @@ from omegaconf import DictConfig, OmegaConf
 from utils import EarlyStopping
 
 
-@hydra.main(config_path='configs', config_name='train_dialogpt')
+@hydra.main(config_path='configs', config_name='train')
 def main(args: DictConfig):
     # initialize logging
     log_directory = os.getcwd()
@@ -52,10 +52,15 @@ def main(args: DictConfig):
                       "sep_token": "<|SEP|>"
                      }
     
-    # set up tokenizer
-    # tokenizer = GPT2Tokenizer.from_pretrained(args.model)
-    # DialoGPT-small
-    tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
+    # set up tokenizer for gpt2 or DialoGPT-small
+    if args.model == "gpt2":
+        tokenizer = GPT2Tokenizer.from_pretrained(args.model)
+        train_dset = GSMDataset(tokenizer, train_examples, SPECIAL_TOKENS, 768, device)
+        valid_dset = GSMDataset(tokenizer, val_examples, SPECIAL_TOKENS, 768, device)
+    elif args.model == "microsoft/DialoGPT-small":
+        tokenizer = AutoTokenizer.from_pretrained(args.model)
+        train_dset = GSMDatasetDialog(tokenizer, train_examples, SPECIAL_TOKENS, 768, device)
+        valid_dset = GSMDatasetDialog(tokenizer, val_examples, SPECIAL_TOKENS, 768, device)
     
     # add special tokens
     if SPECIAL_TOKENS:
@@ -64,18 +69,16 @@ def main(args: DictConfig):
     
     device = torch.device(args.device)
 
-    train_dset = GSMDatasetDialog(tokenizer, train_examples, SPECIAL_TOKENS, 768, device)
-    valid_dset = GSMDatasetDialog(tokenizer, val_examples, SPECIAL_TOKENS, 768, device)
-
     print("Load data with {} steps successfully!".format(args.num_steps if args.num_steps else "all"))
     print("Train data set size: {}".format(len(train_dset)))
     print("Validation data set size: {}".format(len(valid_dset)))
     print('=====================')
 
-    # load gpt2 pretrained models
-    # model = GPT2LMHeadModel.from_pretrained(args.model)
-    # DialoGPT-small
-    model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
+    # load gpt2 or DialoGPT-small pretrained models
+    if args.model == "gpt2":
+        model = GPT2LMHeadModel.from_pretrained(args.model)
+    elif args.model == "microsoft/DialoGPT-small":
+        model = AutoModelForCausalLM.from_pretrained(args.model)
 
     # if special tokens added, model needs to be resized accordingly
     if SPECIAL_TOKENS:
