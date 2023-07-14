@@ -177,44 +177,44 @@ def split_data(data, split_ratio=0.9):
 
     return data[:train_size], data[train_size:]
 
-class GSMDatasetTA(Dataset):
-    def __init__(self, tokenizer, examples, special_tokens, loss_on_prefix=True):
-        """Construct the input as <bos> context + main_q + all_subq <sep> all_suba <eos>
-        """
-        self.examples = examples
-        self.context = [special_tokens["bos_token"] + ex["context"] for ex in self.examples]
-        self.qns = [ex["subquestions"] + special_tokens["sep_token"] for ex in self.examples]
-        self.ans = [ex["subanswers"] + special_tokens["eos_token"] for ex in self.examples]
-        self.context = tokenizer(self.context, padding = False)
-        self.qns = tokenizer(self.qns, padding=False)
-        self.ans = tokenizer(self.ans, padding=False)
-        self.loss_on_prefix = loss_on_prefix
-        self.max_len = max(
-            [
-                len(self.context["input_ids"][i]) + len(self.qns["input_ids"][i]) + len(self.ans["input_ids"][i])
-                for i in range(len(self.examples))
-            ]
-        )
-        print(f"Max tokens: {self.max_len}")
+# class GSMDatasetTA(Dataset):
+#     def __init__(self, tokenizer, examples, special_tokens, loss_on_prefix=True):
+#         """Construct the input as <bos> context + main_q + all_subq <sep> all_suba <eos>
+#         """
+#         self.examples = examples
+#         self.context = [special_tokens["bos_token"] + ex["context"] for ex in self.examples]
+#         self.qns = [ex["subquestions"] + special_tokens["sep_token"] for ex in self.examples]
+#         self.ans = [ex["subanswers"] + special_tokens["eos_token"] for ex in self.examples]
+#         self.context = tokenizer(self.context, padding = False)
+#         self.qns = tokenizer(self.qns, padding=False)
+#         self.ans = tokenizer(self.ans, padding=False)
+#         self.loss_on_prefix = loss_on_prefix
+#         self.max_len = max(
+#             [
+#                 len(self.context["input_ids"][i]) + len(self.qns["input_ids"][i]) + len(self.ans["input_ids"][i])
+#                 for i in range(len(self.examples))
+#             ]
+#         )
+#         print(f"Max tokens: {self.max_len}")
 
-    def __len__(self):
-        return len(self.examples)
+#     def __len__(self):
+#         return len(self.examples)
 
-    def __getitem__(self, idx):
-        context_tokens = self.context["input_ids"][idx]
-        qn_tokens = self.qns["input_ids"][idx]
-        ans_tokens = self.ans["input_ids"][idx]
-        pad_tokens = [0] * (self.max_len - len(context_tokens) - len(qn_tokens) - len(ans_tokens))
-        tokens = context_tokens + qn_tokens + ans_tokens + pad_tokens
-        mask = (
-            (([1] * len(context_tokens))
-            + [int(self.loss_on_prefix)] * len(qn_tokens))
-            + ([1] * len(ans_tokens))
-            + ([0] * len(pad_tokens))
-        )
-        tokens = torch.tensor(tokens)
-        mask = torch.tensor(mask)
-        return dict(input_ids=tokens, attention_mask=mask)
+#     def __getitem__(self, idx):
+#         context_tokens = self.context["input_ids"][idx]
+#         qn_tokens = self.qns["input_ids"][idx]
+#         ans_tokens = self.ans["input_ids"][idx]
+#         pad_tokens = [0] * (self.max_len - len(context_tokens) - len(qn_tokens) - len(ans_tokens))
+#         tokens = context_tokens + qn_tokens + ans_tokens + pad_tokens
+#         mask = (
+#             (([1] * len(context_tokens))
+#             + [int(self.loss_on_prefix)] * len(qn_tokens))
+#             + ([1] * len(ans_tokens))
+#             + ([0] * len(pad_tokens))
+#         )
+#         tokens = torch.tensor(tokens)
+#         mask = torch.tensor(mask)
+#         return dict(input_ids=tokens, attention_mask=mask)
 
 class GSMDataset(Dataset):
     def __init__(self, tokenizer, examples, special_tokens, max_len, device):
